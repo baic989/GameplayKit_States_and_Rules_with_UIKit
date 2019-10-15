@@ -2,15 +2,10 @@ import UIKit
 import GameplayKit
 import PlaygroundSupport
 
-enum Event {
-    case first
-    case second
-    case third
-}
-
-final class EventBuffer {
-
-
+extension Notification.Name {
+    static let first = Notification.Name("first")
+    static let second = Notification.Name("second")
+    static let third = Notification.Name("third")
 }
 
 final class FirstState: GKState {
@@ -64,13 +59,60 @@ final class ThirdState: GKState {
     }
 }
 
+final class FirstRule: GKRule {
+
+}
+
+final class SecondRule: GKRule {
+
+}
+
+final class ThirdRule: GKRule {
+
+}
+
+final class RuleSystem: GKRuleSystem {
+
+}
+
 final class StateMachine: GKStateMachine {
 
+    let ruleSystem = RuleSystem()
+
+    override init(states: [GKState]) {
+        super.init(states: states)
+
+        registerForEvents()
+        setupRuleSystem()
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
+    func enterInitialState() {
+        enter(FirstState.self)
+    }
+
+    private func setupRuleSystem() {
+
+
+
+    }
+
+    private func registerForEvents() {
+        NotificationCenter.default.addObserver(self, selector: #selector(received(event:)), name: .first, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(received(event:)), name: .second, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(received(event:)), name: .third, object: nil)
+    }
+
+    @objc func received(event: Notification) {
+        print(event.name)
+    }
 }
 
 final class StateViewController: UIViewController {
 
-    var event: Event?
     var stateMachine: StateMachine?
 
     override func viewDidLoad() {
@@ -96,9 +138,16 @@ final class StateViewController: UIViewController {
         stateMachine = StateMachine(states: [first, second, third])
 
         // Force first state
-        stateMachine?.enter(FirstState.self)
+        stateMachine?.enterInitialState()
     }
 }
 
 let navigationController = UINavigationController(rootViewController: StateViewController())
 PlaygroundPage.current.liveView = navigationController
+
+NotificationCenter.default.post(Notification(name: .first))
+NotificationCenter.default.post(Notification(name: .second))
+NotificationCenter.default.post(Notification(name: .third))
+NotificationCenter.default.post(Notification(name: .second))
+NotificationCenter.default.post(Notification(name: .third))
+NotificationCenter.default.post(Notification(name: .second))
